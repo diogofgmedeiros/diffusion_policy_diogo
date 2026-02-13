@@ -1,4 +1,4 @@
-name: robodiff
+name: diffusion_env
 channels:
   - pytorch
   - pytorch3d

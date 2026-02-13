@@ -12,7 +12,7 @@ def main(output, render_size, control_hz):
     """
     Collect demonstration for the Push-T task.
     
-    Usage: python demo_pusht.py -o data/pusht_demo.zarr
+    Usage: python demo_pusht.py -o data/pusht/pusht_cchi_v7_replay.zarr
     
     This script is compatible with both Linux and MacOS.
     Hover mouse close to the blue circle to start.

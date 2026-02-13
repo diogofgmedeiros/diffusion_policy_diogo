@@ -28,7 +28,7 @@ class PushTKeypointsRunner(BaseLowdimRunner):
             n_test_vis=6,
             legacy_test=False,
             test_start_seed=10000,
-            max_steps=200,
+            max_steps=200,  #max time
             n_obs_steps=8,
             n_action_steps=8,
             n_latency_steps=0,
@@ -43,6 +43,8 @@ class PushTKeypointsRunner(BaseLowdimRunner):
 
         if n_envs is None:
             n_envs = n_train + n_test
+
+        fixed_state = np.array([20.0, 20.0, 400.0, 400.0, 0.0])
 
         # handle latency step
         # to mimic latency, we request n_latency_steps additional steps 
@@ -60,6 +62,7 @@ class PushTKeypointsRunner(BaseLowdimRunner):
                         legacy=legacy_test,
                         keypoint_visible_rate=keypoint_visible_rate,
                         agent_keypoints=agent_keypoints,
+                        reset_to_state=fixed_state,
                         **kp_kwargs
                     ),
                     video_recoder=VideoRecorder.create_h264(

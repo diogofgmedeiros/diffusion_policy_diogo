@@ -19,8 +19,8 @@
 <sup>2</sup>Toyota Research Institute,
 <sup>3</sup>MIT
 
-<img src="media/teaser.png" alt="drawing" width="100%"/>
-<img src="media/multimodal_sim.png" alt="drawing" width="100%"/>
+<img src="repo_stuff/media/teaser.png" alt="drawing" width="100%"/>
+<img src="repo_stuff/media/multimodal_sim.png" alt="drawing" width="100%"/>
 
 ## 🛝 Try it out!
 Our self-contained Google Colab notebooks is the easiest way to play with Diffusion Policy. We provide separate notebooks for  [state-based environment](https://colab.research.google.com/drive/1gxdkgRVfM55zihY9TFLja97cSVZOZq2B?usp=sharing) and [vision-based environment](https://colab.research.google.com/drive/18GIHeOQ5DyjMN8iIRZL2EKZ0745NLIpg?usp=sharing).

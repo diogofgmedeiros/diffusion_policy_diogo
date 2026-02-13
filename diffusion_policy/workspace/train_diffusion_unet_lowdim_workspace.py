@@ -217,6 +217,7 @@ class TrainDiffusionUnetLowdimWorkspace(BaseWorkspace):
                     runner_log = env_runner.run(policy)
                     # log all
                     step_log.update(runner_log)
+                    print(">>> step_log após update com runner_log:", step_log)
 
                 # run validation
                 if (self.epoch % cfg.training.val_every) == 0:
@@ -280,7 +281,9 @@ class TrainDiffusionUnetLowdimWorkspace(BaseWorkspace):
                     # We can't copy the last checkpoint here
                     # since save_checkpoint uses threads.
                     # therefore at this point the file might have been empty!
-                    topk_ckpt_path = topk_manager.get_ckpt_path(metric_dict)
+                    topk_ckpt_path = topk_manager.get_ckpt_path(metric_dict) 
+                    print(">>> metric_dict:", metric_dict)
+                    print(">>> monitor_key:", cfg.checkpoint.topk.monitor_key)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 
                     if topk_ckpt_path is not None:
                         self.save_checkpoint(path=topk_ckpt_path)

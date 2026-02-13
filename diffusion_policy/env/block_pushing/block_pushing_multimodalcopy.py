@@ -45,8 +45,8 @@ MIN_TARGET_DIST = 0.12
 NUM_RESET_ATTEMPTS = 1000
 
 # Random movement of blocks
-RANDOM_X_SHIFT = 0.1
-RANDOM_Y_SHIFT = 0.15
+RANDOM_X_SHIFT = 0.1 #0.1
+RANDOM_Y_SHIFT = 0.15 #0.15
 
 logging.basicConfig(
     level="INFO",
@@ -142,6 +142,7 @@ class BlockPushMultimodal(block_pushing.BlockPush):
         self._first_move = [-1, -1]
         self._step_num = 0
         self._abs_action = abs_action
+        #self.save_state()
 
     @property
     def target_poses(self):
@@ -177,6 +178,8 @@ class BlockPushMultimodal(block_pushing.BlockPush):
 
         self.step_simulation_to_stabilize()
 
+        self._saved_state = self._pybullet_client.saveState()
+
     def _reset_block_poses(self, workspace_center_x):
         """Resets block poses."""
 
@@ -188,9 +191,15 @@ class BlockPushMultimodal(block_pushing.BlockPush):
                     + add
                     + self._rng.uniform(low=-RANDOM_X_SHIFT, high=RANDOM_X_SHIFT)
                 )
-                block_y = -0.2 + self._rng.uniform(
+                block_y = 0.2 + self._rng.uniform(
                     low=-RANDOM_Y_SHIFT, high=RANDOM_Y_SHIFT
                 )
+                #BLOCK_X_MIN, BLOCK_X_MAX = 0.25, 0.55
+                #BLOCK_Y_MIN, BLOCK_Y_MAX = 0.05, 0.25
+
+                # block_x = self._rng.uniform(low=BLOCK_X_MIN, high=BLOCK_X_MAX)
+                # block_y = 0.1 + self._rng.uniform(low=BLOCK_Y_MIN, high=BLOCK_Y_MAX)
+
                 block_translation = np.array([block_x, block_y, 0])
                 return block_translation
 
@@ -211,6 +220,8 @@ class BlockPushMultimodal(block_pushing.BlockPush):
                 block_translation.tolist(),
                 block_rotation.as_quat().tolist(),
             )
+            pos, _ = self._pybullet_client.getBasePositionAndOrientation(self._block_ids[idx])
+            logger.info(f"[BEFORE SIM BLOCK {idx}] {pos}")
             return block_translation
 
         # Reject targets too close to `avoid`.
@@ -239,7 +250,7 @@ class BlockPushMultimodal(block_pushing.BlockPush):
                         low=-0.05 * RANDOM_X_SHIFT, high=0.05 * RANDOM_X_SHIFT
                     )
                 )
-                target_y = 0.2 + self._rng.uniform(
+                target_y = -0.2 + self._rng.uniform(
                     low=-0.05 * RANDOM_Y_SHIFT, high=0.05 * RANDOM_Y_SHIFT
                 )
                 target_translation = np.array([target_x, target_y, 0.020])
@@ -307,11 +318,12 @@ class BlockPushMultimodal(block_pushing.BlockPush):
         if reset_poses:
             self._pybullet_client.restoreState(self._saved_state)
 
-            rotation = transform.Rotation.from_rotvec([0, math.pi, 0])
-            translation = np.array([0.6, 0.0, block_pushing.EFFECTOR_HEIGHT])
+            rotation = transform.Rotation.from_rotvec([0, 0, 0])   #([0, math.pi, 0])
+            translation = np.array([0.3, 0.4, block_pushing.EFFECTOR_HEIGHT])  # 0.3, 0.4 -> right     # 0.3, -0.4 -> default
             starting_pose = Pose3d(rotation=rotation, translation=translation)
             self._set_robot_target_effector_pose(starting_pose)
             self._reset_object_poses(workspace_center_x, workspace_center_y)
+            #self._saved_state = self._pybullet_client.saveState()
 
         # else:
         self._target_poses = [
@@ -320,6 +332,8 @@ class BlockPushMultimodal(block_pushing.BlockPush):
 
         if reset_poses:
             self.step_simulation_to_stabilize()
+        
+        #self._saved_state = self._pybullet_client.saveState()
 
         state = self._compute_state()
         self._previous_state = state
@@ -363,6 +377,12 @@ class BlockPushMultimodal(block_pushing.BlockPush):
             return block_pose
 
         block_poses = [_get_block_pose(i) for i in range(len(self._block_ids))]
+        logger.info(
+            f"[STATE step {self._step_num}] "
+            f"b0={block_poses[0].translation}, "
+            f"b1={block_poses[1].translation}"
+        )
+        #self.block_poses = block_poses
 
         def _yaw_from_pose(pose):
             return np.array([pose.rotation.as_euler("xyz", degrees=False)[-1] % np.pi])
@@ -649,7 +669,7 @@ class BlockPushMultimodal(block_pushing.BlockPush):
         for obj_state, obj_id in zip(state["objects"], obj_ids):
             _set_state_safe(obj_state, obj_id)
 
-        self.reset(reset_poses=False)
+        #self.reset(reset_poses=False)
 
 
 class BlockPushHorizontalMultimodal(BlockPushMultimodal):
@@ -694,6 +714,7 @@ class BlockPushHorizontalMultimodal(BlockPushMultimodal):
                 block_translation.tolist(),
                 block_rotation.as_quat().tolist(),
             )
+
             return block_translation
 
         # Reject targets too close to `avoid`.
@@ -716,7 +737,7 @@ class BlockPushHorizontalMultimodal(BlockPushMultimodal):
         def _reset_target_pose(idx, add=0.0, avoid=None):
             def _get_random_translation():
                 # Choose x,y randomly.
-                target_x = 0.5 + self._rng.uniform(
+                target_x = 0.05 + self._rng.uniform(
                     low=-0.05 * RANDOM_X_SHIFT, high=0.05 * RANDOM_X_SHIFT
                 )
                 target_y = (
@@ -779,7 +800,10 @@ if "BlockPushMultimodal-v0" in registration.registry.env_specs:
     del registration.registry.env_specs["BlockPushMultimodal-v0"]
 
 registration.register(
-    id="BlockPushMultimodal-v0", entry_point=BlockPushMultimodal, max_episode_steps=350
+    id="BlockPushMultimodal-v0", 
+    entry_point=BlockPushMultimodal, 
+    kwargs=dict(shared_memory=True),
+    max_episode_steps=350
 )
 
 registration.register(

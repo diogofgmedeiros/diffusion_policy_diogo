@@ -1,6 +1,8 @@
 """
 Usage:
-python eval.py --checkpoint data/image/pusht/diffusion_policy_cnn/train_0/checkpoints/latest.ckpt -o data/pusht_eval_output
+python eval.py --checkpoint data/experiments/low_dim/pusht/diffusion_policy_cnn/train_0/checkpoints/latest.ckpt -o data/Outputs/pushT/fixed_init_pos_moreTime
+python eval.py --checkpoint data/experiments/low_dim/block_pushing/diffusion_policy_cnn/train_0/checkpoints/latest.ckpt -o data/Outputs/block_pushing/diff_pos
+python eval.py --checkpoint data/outputs/2025.10.24/16.15.01_train_diffusion_unet_lowdim_blockpush_lowdim_seed/checkpoints/latest.ckpt -o data/Outputs/block_pushing/after_train
 """
 
 import sys

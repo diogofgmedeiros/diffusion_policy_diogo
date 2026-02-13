@@ -71,6 +71,10 @@ class OrientedPushOracle(py_policy.PyPolicy):
         while theta_error < -np.pi / 4:
             theta_error += np.pi / 2.0
 
+        xy_dir_ee_to_block = xy_block - xy_ee
+        xy_dir_ee_to_block /= np.linalg.norm(xy_dir_ee_to_block)
+        #xy_pre_block = xy_block - xy_dir_ee_to_block * 0.05
+
         xy_pre_block = xy_block + -xy_dir_block_to_target * 0.05
         xy_nexttoblock = xy_block + -xy_dir_block_to_target * 0.03
         xy_touchingblock = xy_block + -xy_dir_block_to_target * 0.01
