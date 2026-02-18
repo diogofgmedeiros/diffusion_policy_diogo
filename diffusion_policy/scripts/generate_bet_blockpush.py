@@ -6,11 +6,10 @@ if __name__ == "__main__":
     ROOT_DIR = str(pathlib.Path(__file__).parent.parent.parent)
     sys.path.append(ROOT_DIR)
 
+
 import os
 import click
-import pickle
 import pathlib
-from numcodecs import Pickle
 import numpy as np
 from tqdm import tqdm
 from diffusion_policy.common.replay_buffer import ReplayBuffer
@@ -29,7 +28,6 @@ def main(output, n_episodes, chunk_length):
 
     buffer = ReplayBuffer.create_empty_numpy()
     env = TimeLimit(GymWrapper(BlockPushMultimodal()), duration=350)
-    initial_states = []
     for i in tqdm(range(n_episodes)):
         print(i)
         obs_history = list()
@@ -38,8 +36,6 @@ def main(output, n_episodes, chunk_length):
         env.seed(i)
         policy = MultimodalOrientedPushOracle(env)
         time_step = env.reset()
-        initial_state = pickle.dumps(env.wrapped_env().gym.get_pybullet_state())
-        initial_states.append(initial_state)
         policy_state = policy.get_initial_state(1)
         while True:
             action_step = policy.action(time_step, policy_state)
@@ -57,21 +53,12 @@ def main(output, n_episodes, chunk_length):
         action_history = np.array(action_history)
 
         episode = {
-            #'initial_state': pickle.dumps(initial_state),
             'obs': obs_history,
             'action': action_history
         }
         buffer.add_episode(episode)
     
     buffer.save_to_path(output, chunk_length=chunk_length)
-    import zarr
-    root = zarr.open(output, mode='a')
-    root.create_dataset(
-        "initial_states",
-        data=np.array(initial_states, dtype=object),
-        dtype=object,
-        object_codec=Pickle(protocol=pickle.HIGHEST_PROTOCOL)
-    )
         
 if __name__ == '__main__':
     main()
