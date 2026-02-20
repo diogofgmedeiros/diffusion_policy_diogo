@@ -188,7 +188,7 @@ class BlockPushMultimodal(block_pushing.BlockPush):
                     + add
                     + self._rng.uniform(low=-RANDOM_X_SHIFT, high=RANDOM_X_SHIFT)
                 )
-                block_y = -0.2 + self._rng.uniform(
+                block_y = 0.2 + self._rng.uniform(  #default -0.2
                     low=-RANDOM_Y_SHIFT, high=RANDOM_Y_SHIFT
                 )
                 block_translation = np.array([block_x, block_y, 0])
@@ -239,7 +239,7 @@ class BlockPushMultimodal(block_pushing.BlockPush):
                         low=-0.05 * RANDOM_X_SHIFT, high=0.05 * RANDOM_X_SHIFT
                     )
                 )
-                target_y = 0.2 + self._rng.uniform(
+                target_y = -0.2 + self._rng.uniform(    #default +0.2
                     low=-0.05 * RANDOM_Y_SHIFT, high=0.05 * RANDOM_Y_SHIFT
                 )
                 target_translation = np.array([target_x, target_y, 0.020])
@@ -308,7 +308,7 @@ class BlockPushMultimodal(block_pushing.BlockPush):
             self._pybullet_client.restoreState(self._saved_state)
 
             rotation = transform.Rotation.from_rotvec([0, math.pi, 0])
-            translation = np.array([0.3, -0.4, block_pushing.EFFECTOR_HEIGHT])
+            translation = np.array([0.3, 0.4, block_pushing.EFFECTOR_HEIGHT])   #default -0.4
             starting_pose = Pose3d(rotation=rotation, translation=translation)
             self._set_robot_target_effector_pose(starting_pose)
             self._reset_object_poses(workspace_center_x, workspace_center_y)
