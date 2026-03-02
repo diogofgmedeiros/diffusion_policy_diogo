@@ -87,17 +87,29 @@ TARGET_ORIENTATION_COS_SIN_MAX = np.array(
 # Hardcoded Pose joints to make sure we don't have surprises from using the
 # IK solver on reset. The joint poses correspond to the Pose with:
 #   rotation = rotation3.Rotation3.from_axis_angle([0, 1, 0], math.pi)
+#   translation = np.array([0.3, 0.4, 0.06])
+INITIAL_JOINT_POSITIONS = np.array([
+    0.9259278319483307,
+    0.7093734870761881,
+    -1.084488543292182,
+    -0.00010067983932062573,
+    0.3751224227966381,
+    -2.2155779219997256,
+])
+# Hardcoded Pose joints to make sure we don't have surprises from using the
+# IK solver on reset. The joint poses correspond to the Pose with:
+#   rotation = rotation3.Rotation3.from_axis_angle([0, 1, 0], math.pi)
 #   translation = np.array([0.3, -0.4, 0.07])
-INITIAL_JOINT_POSITIONS = np.array(
-    [
-        -0.9254632489674508,
-        0.6990770671568564,
-        -1.106629064060494,
-        0.0006653351931553931,
-        0.3987969742311386,
-        -4.063402065624296,
-    ]
-)
+# INITIAL_JOINT_POSITIONS = np.array(
+#     [
+#         -0.9254632489674508,
+#         0.6990770671568564,
+#         -1.106629064060494,
+#         0.0006653351931553931,
+#         0.3987969742311386,
+#         -4.063402065624296,
+#     ]
+# )
 
 DEFAULT_CAMERA_POSE = (1.0, 0, 0.75)
 DEFAULT_CAMERA_ORIENTATION = (np.pi / 4, np.pi, -np.pi / 2)
@@ -396,15 +408,26 @@ class BlockPush(gym.Env):
             self._pybullet_client.restoreState(self._saved_state)
 
             rotation = transform.Rotation.from_rotvec([0, math.pi, 0])
-            translation = np.array([0.3, -0.4, self.effector_height])
+            translation = np.array([0.3, 0.4, self.effector_height])   #default -0.4
             starting_pose = Pose3d(rotation=rotation, translation=translation)
             self._set_robot_target_effector_pose(starting_pose)
 
             # Reset block pose.
             block_x = workspace_center_x + self._rng.uniform(low=-0.1, high=0.1)
-            block_y = -0.2 + self._rng.uniform(low=-0.15, high=0.15)
+            block_y = 0.2 + self._rng.uniform(low=-0.15, high=0.15)    #default -0.2
             block_translation = np.array([block_x, block_y, 0])
-            block_sampled_angle = self._rng.uniform(math.pi)
+            #block_sampled_angle = self._rng.uniform(math.pi)
+            #block_rotation = transform.Rotation.from_rotvec([0, 0, block_sampled_angle])
+
+            # Reset target pose.
+            target_x = workspace_center_x + self._rng.uniform(low=-0.10, high=0.10)
+            target_y = -0.2 + self._rng.uniform(low=-0.15, high=0.15)   #default 0.2
+            target_translation = np.array([target_x, target_y, 0.020])
+
+            xy_block_to_target = target_translation[:2] - block_translation[:2]
+            theta_to_target = np.arctan2(xy_block_to_target[1], xy_block_to_target[0])
+            angle_noise = self._rng.uniform(low=-0.15, high=0.15)  # ~ +-8.6 graus
+            block_sampled_angle = theta_to_target #
             block_rotation = transform.Rotation.from_rotvec([0, 0, block_sampled_angle])
 
             self._pybullet_client.resetBasePositionAndOrientation(
@@ -412,11 +435,6 @@ class BlockPush(gym.Env):
                 block_translation.tolist(),
                 block_rotation.as_quat().tolist(),
             )
-
-            # Reset target pose.
-            target_x = workspace_center_x + self._rng.uniform(low=-0.10, high=0.10)
-            target_y = 0.2 + self._rng.uniform(low=-0.15, high=0.15)
-            target_translation = np.array([target_x, target_y, 0.020])
 
             target_sampled_angle = math.pi + self._rng.uniform(
                 low=-math.pi / 6, high=math.pi / 6
