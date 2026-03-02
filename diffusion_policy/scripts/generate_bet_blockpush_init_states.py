@@ -1,3 +1,5 @@
+# python diffusion_policy/scripts/generate_bet_blockpush_init_states.py -o data/datasets/block_pushing/single_push_seed2.zarr -n 10 --env_type single
+# python diffusion_policy/scripts/generate_bet_blockpush_init_states.py -o data/datasets/block_pushing/multimodal_push_seed2.zarr -n 10 --env_type multimodal
 if __name__ == "__main__":
     import sys
     import os
@@ -5,7 +7,6 @@ if __name__ == "__main__":
 
     ROOT_DIR = str(pathlib.Path(__file__).parent.parent.parent)
     sys.path.append(ROOT_DIR)
-
 
 import os
 import pickle
@@ -21,16 +22,31 @@ from tf_agents.environments.gym_wrapper import GymWrapper
 from tf_agents.trajectories.time_step import StepType
 from diffusion_policy.env.block_pushing.block_pushing_multimodal import BlockPushMultimodal
 from diffusion_policy.env.block_pushing.block_pushing import BlockPush
+from diffusion_policy.env.block_pushing.oracles.oriented_push_oracle import OrientedPushOracle
 from diffusion_policy.env.block_pushing.oracles.multimodal_push_oracle import MultimodalOrientedPushOracle
 
 @click.command()
 @click.option('-o', '--output', required=True)
 @click.option('-n', '--n_episodes', default=1000)
 @click.option('-c', '--chunk_length', default=-1)
-def main(output, n_episodes, chunk_length):
+@click.option(
+    '--env_type',
+    type=click.Choice(['single', 'multimodal'], case_sensitive=False),
+    default='multimodal',
+    show_default=True,
+    help='Dataset type: single block+target or multimodal (2 blocks+2 targets).'
+)
+def main(output, n_episodes, chunk_length, env_type):
 
     buffer = ReplayBuffer.create_empty_numpy()
-    env = TimeLimit(GymWrapper(BlockPushMultimodal()), duration=350)
+    #env = TimeLimit(GymWrapper(BlockPushMultimodal()), duration=350)
+    if env_type == 'single':
+        env = TimeLimit(GymWrapper(BlockPush()), duration=150)
+        policy_cls = OrientedPushOracle
+    else:
+        env = TimeLimit(GymWrapper(BlockPushMultimodal()), duration=350)
+        policy_cls = MultimodalOrientedPushOracle
+
     initial_states = list()
     for i in tqdm(range(n_episodes)):
         print(i)
@@ -38,7 +54,8 @@ def main(output, n_episodes, chunk_length):
         action_history = list()
 
         env.seed(i)
-        policy = MultimodalOrientedPushOracle(env)
+        #policy = MultimodalOrientedPushOracle(env)
+        policy = policy_cls(env)
         time_step = env.reset()
         pyb_state = env.wrapped_env().gym.get_pybullet_state()
         initial_states.append(pickle.dumps(pyb_state))
