@@ -30,13 +30,19 @@ from diffusion_policy.env.block_pushing.oracles.multimodal_push_oracle import Mu
 @click.option('-n', '--n_episodes', default=1000)
 @click.option('-c', '--chunk_length', default=-1)
 @click.option(
+    '--save_step_states/--no-save_step_states',
+    default=True,
+    show_default=True,
+    help='Store pybullet state before each action for exact state-based visualization replay.'
+)
+@click.option(
     '--env_type',
     type=click.Choice(['single', 'multimodal'], case_sensitive=False),
     default='multimodal',
     show_default=True,
     help='Dataset type: single block+target or multimodal (2 blocks+2 targets).'
 )
-def main(output, n_episodes, chunk_length, env_type):
+def main(output, n_episodes, chunk_length, save_step_states, env_type):
 
     buffer = ReplayBuffer.create_empty_numpy()
     #env = TimeLimit(GymWrapper(BlockPushMultimodal()), duration=350)
@@ -48,8 +54,11 @@ def main(output, n_episodes, chunk_length, env_type):
         policy_cls = MultimodalOrientedPushOracle
 
     initial_states = list()
+    step_states = list()
     for i in tqdm(range(n_episodes)):
         print(i)
+        if(i == 9):
+            print("ola")
         obs_history = list()
         action_history = list()
 
@@ -61,6 +70,11 @@ def main(output, n_episodes, chunk_length, env_type):
         initial_states.append(pickle.dumps(pyb_state))
         policy_state = policy.get_initial_state(1)
         while True:
+            if time_step.step_type == StepType.LAST:
+                break
+            if save_step_states:
+                pyb_step_state = env.wrapped_env().gym.get_pybullet_state()
+                step_states.append(pickle.dumps(pyb_step_state))
             action_step = policy.action(time_step, policy_state)
             obs = np.concatenate(list(time_step.observation.values()), axis=-1)
             action = action_step.action
@@ -88,6 +102,12 @@ def main(output, n_episodes, chunk_length, env_type):
     if 'initial_states' in z:
         del z['initial_states']
     z.array('initial_states', arr, dtype=object, object_codec=obj_codec)
+
+    if save_step_states:
+        step_states_arr = np.array(step_states, dtype=object)
+        if 'step_states' in z:
+            del z['step_states']
+        z.array('step_states', step_states_arr, dtype=object, object_codec=obj_codec)
         
 if __name__ == '__main__':
     main()

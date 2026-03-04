@@ -416,18 +416,7 @@ class BlockPush(gym.Env):
             block_x = workspace_center_x + self._rng.uniform(low=-0.1, high=0.1)
             block_y = 0.2 + self._rng.uniform(low=-0.15, high=0.15)    #default -0.2
             block_translation = np.array([block_x, block_y, 0])
-            #block_sampled_angle = self._rng.uniform(math.pi)
-            #block_rotation = transform.Rotation.from_rotvec([0, 0, block_sampled_angle])
-
-            # Reset target pose.
-            target_x = workspace_center_x + self._rng.uniform(low=-0.10, high=0.10)
-            target_y = -0.2 + self._rng.uniform(low=-0.15, high=0.15)   #default 0.2
-            target_translation = np.array([target_x, target_y, 0.020])
-
-            xy_block_to_target = target_translation[:2] - block_translation[:2]
-            theta_to_target = np.arctan2(xy_block_to_target[1], xy_block_to_target[0])
-            angle_noise = self._rng.uniform(low=-0.15, high=0.15)  # ~ +-8.6 graus
-            block_sampled_angle = theta_to_target #
+            block_sampled_angle = self._rng.uniform(math.pi)
             block_rotation = transform.Rotation.from_rotvec([0, 0, block_sampled_angle])
 
             self._pybullet_client.resetBasePositionAndOrientation(
@@ -435,6 +424,17 @@ class BlockPush(gym.Env):
                 block_translation.tolist(),
                 block_rotation.as_quat().tolist(),
             )
+
+            # Reset target pose.
+            target_x = workspace_center_x + self._rng.uniform(low=-0.10, high=0.10)
+            target_y = -0.2 + self._rng.uniform(low=-0.15, high=0.15)   #default 0.2
+            target_translation = np.array([target_x, target_y, 0.020])
+
+            # xy_block_to_target = target_translation[:2] - block_translation[:2]
+            # theta_to_target = np.arctan2(xy_block_to_target[1], xy_block_to_target[0])
+            # angle_noise = self._rng.uniform(low=-0.15, high=0.15)  # ~ +-8.6 graus
+            # block_sampled_angle = theta_to_target #
+            # block_rotation = transform.Rotation.from_rotvec([0, 0, block_sampled_angle])
 
             target_sampled_angle = math.pi + self._rng.uniform(
                 low=-math.pi / 6, high=math.pi / 6
