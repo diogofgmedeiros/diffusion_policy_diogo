@@ -1,9 +1,12 @@
 LD_LIBRARY_PATH=/home/medeiros/anaconda3/envs/diffusion_env/lib:$LD_LIBRARY_PATH
 
+Gerar data:
 python diffusion_policy/scripts/generate_bet_blockpush_init_states.py -o data/datasets/block_pushing/multimodal_push_seed.zarr -n 1000 --save_step_states  --env_type multimodal
 
+Visualizar dataset:
 python My_Scripts/visualize_dataset_videos3.py   --zarr_path data/datasets/block_pushing/multimodal_push_seed.zarr   --env_type multimodal   --output_dir data/dataset_videos/block_pushing/multimodal_block_pushing/multimodal_block_pushing1  --replay_mode auto
 
+Comando de treino:
 HYDRA_FULL_ERROR=1 python train.py \
   --config-dir data/experiments/low_dim/block_pushing/diffusion_policy_cnn \
   --config-name config.yaml \

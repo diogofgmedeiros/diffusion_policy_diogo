@@ -1,7 +1,8 @@
 import zarr
 import numpy as np
 
-path = "/home/medeiros/Desktop/Projects/diffusion_policy/data/datasets/block_pushing/multimodal_push_seed.zarr"
+path = "/home/medeiros/Desktop/Projects/diffusion_policy_diogo/data/datasets/block_pushing/multimodal_push_seed.zarr"
+
 z = zarr.open(path, mode="r")
 
 ends = z["meta/episode_ends"][:]
