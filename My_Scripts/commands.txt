@@ -1,18 +1,16 @@
-HYDRA_FULL_ERROR=1 python train.py \
->   --config-dir=data/experiments/low_dim/block_pushing/diffusion_policy_cnn \
->   --config-name=config.yaml \
->   training.seed=42 \
->   training.device=cuda:0 \
->   training.rollout_every=50 \
->   task.env_runner.n_envs=2 \
->   task.env_runner.n_test=5 \
->   task.env_runner.n_test_vis=2 \
->   hydra.run.dir='data/outputs/${now:%Y.%m.%d}/${now:%H.%M.%S}_${name}_${task_name}'
-
-python train.py --config-dir=data/experiments/low_dim/block_pushing/diffusion_policy_cnn --config-name=config.yaml
-
-python train.py --config-dir=data/experiments/low_dim/block_pushing/diffusion_policy_cnn --config-name=config.yaml training.seed=42 training.device=cuda:0 hydra.run.dir='data/outputs/${now:%Y.%m.%d}/${now:%H.%M.%S}_${name}_${task_name}'
-
-python diffusion_policy/scripts/generate_bet_blockpush.py --output data/training/block_pushing/multimodal_push_seed_new2.zarr --n_episodes 1
-
 LD_LIBRARY_PATH=/home/medeiros/anaconda3/envs/diffusion_env/lib:$LD_LIBRARY_PATH
+
+python diffusion_policy/scripts/generate_bet_blockpush_init_states.py -o data/datasets/block_pushing/multimodal_push_seed.zarr -n 1000 --save_step_states  --env_type multimodal
+
+python My_Scripts/visualize_dataset_videos3.py   --zarr_path data/datasets/block_pushing/multimodal_push_seed.zarr   --env_type multimodal   --output_dir data/dataset_videos/block_pushing/multimodal_block_pushing/multimodal_block_pushing1  --replay_mode auto
+
+HYDRA_FULL_ERROR=1 python train.py \
+  --config-dir data/experiments/low_dim/block_pushing/diffusion_policy_cnn \
+  --config-name config.yaml \
+  training.seed=42 \
+  training.device=cuda:0 \
+  training.rollout_every=50 \
+  task.env_runner.n_envs=2 \
+  task.env_runner.n_test=5 \
+  task.env_runner.n_test_vis=2 \
+  hydra.run.dir="data/outputs/${now:%Y.%m.%d}/${now:%H.%M.%S}_${name}_${task_name}"
